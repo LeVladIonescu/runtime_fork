@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using FluentAssertions;
 using ILCompiler;
+using ILCompiler.DependencyAnalysis;
+using Internal.IL.Stubs;
 using Internal.TypeSystem;
 using Internal.TypeSystem.Ecma;
 using Mono.Cecil;
@@ -120,12 +122,12 @@ namespace Mono.Linker.Tests.TestCasesRunner
 
 		private void PopulateLinkedMembers ()
 		{
-			foreach (TypeDesc? constructedType in testResult.TrimmingResults.ConstructedEETypes) {
-				AddType (constructedType);
+			foreach (TypeDesc type in testResult.TrimmingResults.AllEETypes) {
+				AddType (type);
 			}
 
-			foreach (MethodDesc? compiledMethod in testResult.TrimmingResults.CompiledMethodBodies) {
-				AddMethod (compiledMethod);
+			foreach (MethodDesc method in testResult.TrimmingResults.CompiledMethodBodies) {
+				AddMethod (method);
 			}
 
 			void AddMethod (MethodDesc method)
@@ -173,8 +175,8 @@ namespace Mono.Linker.Tests.TestCasesRunner
 				if (typeDef.IsDelegate) {
 					// AOT's handling of delegates is very different from the IL/metadata picture
 					// So to simplify this, we're going to automatically "mark" all of the delegate's methods
-					foreach (MethodDesc m in typeDef.GetMethods()) {
-						if (ShouldIncludeEntityByDisplayName(m)) {
+					foreach (MethodDesc m in typeDef.GetMethods ()) {
+						if (ShouldIncludeEntityByDisplayName (m)) {
 							AddMember (m);
 						}
 					}
@@ -1193,7 +1195,7 @@ namespace Mono.Linker.Tests.TestCasesRunner
 				}
 
 				object? keptBy = ca.GetPropertyValue (nameof (KeptAttribute.By));
-				return keptBy is null ? true : ((ProducedBy) keptBy).HasFlag (ProducedBy.NativeAot);
+				return keptBy is null ? true : ((Tool) keptBy).HasFlag (Tool.NativeAot);
 			});
 		}
 
@@ -1210,7 +1212,7 @@ namespace Mono.Linker.Tests.TestCasesRunner
 				}
 
 				object? keptBy = ca.GetPropertyValue (nameof (KeptAttribute.By));
-				return keptBy is null ? true : ((ProducedBy) keptBy).HasFlag (ProducedBy.NativeAot);
+				return keptBy is null ? true : ((Tool) keptBy).HasFlag (Tool.NativeAot);
 			});
 		}
 
