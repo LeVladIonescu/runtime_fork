@@ -535,9 +535,7 @@ namespace ILCompiler.DependencyAnalysis
 
                 byte[] blobSymbolName = _sb.Append(_currentNodeZeroTerminatedName).ToUtf8String().UnderlyingArray;
 
-                ObjectNodeSection section = ObjectNodeSection.XDataSection;
-                if (ShouldShareSymbol(node))
-                    section = GetSharedSection(section, _sb.ToString());
+                ObjectNodeSection section = GetSharedSection(ObjectNodeSection.XDataSection, _sb.ToString());
                 SwitchSection(_nativeObjectWriter, section.Name, GetCustomSectionAttributes(section), section.ComdatName);
 
                 EmitAlignment(4);
@@ -992,7 +990,7 @@ namespace ILCompiler.DependencyAnalysis
 
                     ObjectData nodeContents = node.GetData(factory);
 
-                    dumper?.DumpObjectNode(factory.NameMangler, node, nodeContents);
+                    dumper?.DumpObjectNode(factory, node, nodeContents);
 
 #if DEBUG
                     foreach (ISymbolNode definedSymbol in nodeContents.DefinedSymbols)
@@ -1149,21 +1147,25 @@ namespace ILCompiler.DependencyAnalysis
                     }
                 }
 
-                if (logger.IsVerbose)
-                    logger.LogMessage($"Emitting debug information");
-
                 // Native side of the object writer is going to do more native memory allocations.
                 // Free up as much memory as possible so that we don't get OOM killed.
                 // This is potentially a waste of time. We're about to end the process and let the
                 // OS "garbage collect" the entire address space.
-                var gcMemoryInfo = GC.GetGCMemoryInfo();
-                if (gcMemoryInfo.TotalCommittedBytes > gcMemoryInfo.TotalAvailableMemoryBytes / 2)
+                var gcInfo = GC.GetGCMemoryInfo();
+
+                if (logger.IsVerbose)
+                    logger.LogMessage($"Memory stats: {gcInfo.TotalCommittedBytes} bytes committed, {gcInfo.TotalAvailableMemoryBytes} bytes available");
+
+                if (gcInfo.TotalCommittedBytes > gcInfo.TotalAvailableMemoryBytes / 5)
                 {
                     if (logger.IsVerbose)
                         logger.LogMessage($"Freeing up memory");
 
-                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive);
+                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
                 }
+
+                if (logger.IsVerbose)
+                    logger.LogMessage($"Emitting debug information");
 
                 objectWriter.EmitDebugModuleInfo();
 
