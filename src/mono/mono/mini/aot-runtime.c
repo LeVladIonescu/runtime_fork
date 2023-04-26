@@ -3992,6 +3992,12 @@ decode_patch (MonoAotModule *aot_module, MonoMemPool *mp, MonoJumpInfo *ji, guin
 	case MONO_PATCH_INFO_AOT_MODULE:
 	case MONO_PATCH_INFO_MSCORLIB_GOT_ADDR:
 		break;
+	case MONO_PATCH_INFO_INIT_BITSET: {
+		guint32 size = (guint32) decode_value (p, &p);
+		printf("Bitset size is %d\n", size);
+		// Create init bitset and use it in method init wrapper
+		break;
+	}
 	case MONO_PATCH_INFO_SIGNATURE:
 	case MONO_PATCH_INFO_GSHAREDVT_IN_WRAPPER:
 		ji->data.target = decode_signature (aot_module, p, &p);

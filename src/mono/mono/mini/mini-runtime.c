@@ -1258,6 +1258,7 @@ mono_patch_info_hash (gconstpointer data)
 	case MONO_PATCH_INFO_GOT_OFFSET:
 	case MONO_PATCH_INFO_GC_SAFE_POINT_FLAG:
 	case MONO_PATCH_INFO_AOT_MODULE:
+	case MONO_PATCH_INFO_INIT_BITSET:
 	case MONO_PATCH_INFO_PROFILER_ALLOCATION_COUNT:
 	case MONO_PATCH_INFO_PROFILER_CLAUSE_COUNT:
 	case MONO_PATCH_INFO_SPECIFIC_TRAMPOLINES:
@@ -1534,6 +1535,7 @@ mono_resolve_patch_target_ext (MonoMemoryManager *mem_manager, MonoMethod *metho
 	case MONO_PATCH_INFO_FIELD:
 	case MONO_PATCH_INFO_SIGNATURE:
 	case MONO_PATCH_INFO_AOT_MODULE:
+	case MONO_PATCH_INFO_INIT_BITSET:
 		target = patch_info->data.target;
 		break;
 	case MONO_PATCH_INFO_IID:
